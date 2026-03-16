@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TN-PSPAS — UML Diagrams</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0b0d13;
+  --surface: #12151f;
+  --surface2: #181c28;
+  --surface3: #1e2333;
+  --border: rgba(200,51,10,0.25);
+  --border2: rgba(255,255,255,0.07);
+  --primary: #c8330a;
+  --primary-l: #e8451a;
+  --gold: #e8a020;
+  --green: #1db87a;
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+  --text: #dde1ef;
+  --muted: #6b7290;
+  --dim: #373d56;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px}
+
+/* HEADER */
+.header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:18px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.header-left{display:flex;align-items:center;gap:14px}
+.hbadge{background:var(--primary);color:#fff;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;padding:3px 10px;border-radius:2px}
+.htitle{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px}
+.hsub{font-size:12px;color:var(--muted)}
+
+/* TAB NAV */
+.tab-nav{
+  display:flex;gap:4px;padding:20px 32px 0;
+  border-bottom:1px solid var(--border2);
+  background:var(--surface);
+  overflow-x:auto;
+}
+.tab{
+  padding:10px 20px;
+  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;
+  color:var(--muted);cursor:pointer;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;transition:all 0.2s;
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--primary-l);border-bottom-color:var(--primary)}
+
+/* CONTENT */
+.content{padding:32px;max-width:1100px;margin:0 auto}
+.diagram-section{display:none}
+.diagram-section.active{display:block}
+
+.section-header{margin-bottom:24px}
+.section-title{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;margin-bottom:4px}
+.section-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:700px}
+
+/* DIAGRAM CANVAS */
+.diagram-canvas{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:3px;
+  padding:40px;
+  margin-bottom:24px;
+  overflow-x:auto;
+  position:relative;
+}
+
+.diagram-canvas::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(var(--dim) 1px,transparent 1px);
+  background-size:24px 24px;
+  opacity:0.3;border-radius:3px;
+}
+
+/* LEGEND */
+.legend{
+  display:flex;flex-wrap:wrap;gap:12px;
+  padding:14px 18px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:2px;
+  margin-bottom:20px;
+}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
+.legend-box{width:14px;height:14px;border-radius:2px}
+
+/* PlantUML CODE BOX */
+.code-box{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:2px;
+  padding:20px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  color:#aab0cc;
+  line-height:1.8;
+  white-space:pre;
+  overflow-x:auto;
+  margin-top:20px;
+}
+.code-box .kw{color:var(--primary-l)}
+.code-box .cls{color:var(--gold)}
+.code-box .rel{color:var(--green)}
+.code-box .note{color:var(--muted)}
+
+/* ═══════════════════════════════
+   SVG DIAGRAM STYLES
+═══════════════════════════════ */
+svg{position:relative;z-index:1;overflow:visible}
+
+/* Actor */
+.actor-head{fill:none;stroke:var(--blue);stroke-width:2}
+.actor-body{stroke:var(--blue);stroke-width:2}
+.actor-lbl{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;fill:var(--text);text-anchor:middle}
+
+/* Use Case ellipse */
+.uc-ellipse{fill:rgba(59,130,246,0.1);stroke:var(--blue);stroke-width:1.5}
+.uc-text{font-family:'Noto Sans',sans-serif;font-size:11px;fill:var(--text);text-anchor:middle}
+
+/* System boundary */
+.sys-box{fill:rgba(200,51,10,0.05);stroke:var(--primary);stroke-width:1.5;stroke-dasharray:6,3}
+.sys-lbl{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;fill:var(--primary-l);letter-spacing:1px}
+
+/* Association line */
+.assoc{stroke:var(--muted);stroke-width:1.2;fill:none;marker-end:url(#arr)}
+.incl{stroke:var(--green);stroke-width:1;stroke-dasharray:5,3;fill:none;marker-end:url(#arr-green)}
+.ext{stroke:var(--gold);stroke-width:1;stroke-dasharray:5,3;fill:none;marker-end:url(#arr-gold)}
+
+/* Class box */
+.class-box{fill:var(--surface2);stroke:var(--border);stroke-width:1.5;rx:2}
+.class-head{fill:rgba(200,51,10,0.15);stroke:var(--border);stroke-width:1.5}
+.class-title{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;fill:var(--primary-l);text-anchor:middle}
+.class-stereo{font-family:'Noto Sans',sans-serif;font-size:10px;fill:var(--muted);text-anchor:middle;font-style:italic}
+.class-attr{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#8899cc}
+.class-method{font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--green)}
+.divider{stroke:var(--border2);stroke-width:1}
+
+/* Relations */
+.inherit{stroke:var(--blue);stroke-width:1.5;fill:none;marker-end:url(#tri)}
+.compose{stroke:var(--gold);stroke-width:1.5;fill:none;marker-end:url(#arr-gold);marker-start:url(#diamond)}
+.depend{stroke:var(--muted);stroke-width:1;stroke-dasharray:5,3;fill:none;marker-end:url(#arr)}
+.assoc2{stroke:var(--green);stroke-width:1.5;fill:none;marker-end:url(#arr-green)}
+.rel-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;fill:var(--muted)}
+.multi-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;fill:var(--gold)}
+
+/* Sequence */
+.lifeline{stroke:var(--muted);stroke-width:1;stroke-dasharray:4,3}
+.activation{fill:rgba(200,51,10,0.2);stroke:var(--primary);stroke-width:1}
+.msg-line{stroke:var(--text);stroke-width:1.3;fill:none;marker-end:url(#arr-white)}
+.msg-ret{stroke:var(--muted);stroke-width:1;stroke-dasharray:5,3;fill:none;marker-end:url(#arr)}
+.msg-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--text)}
+.seq-box{fill:var(--surface2);stroke:var(--border);stroke-width:1.5;rx:2}
+.seq-lbl{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;fill:var(--text);text-anchor:middle}
+.loop-box{fill:rgba(59,130,246,0.05);stroke:var(--blue);stroke-width:1;stroke-dasharray:4,3}
+.loop-lbl{font-family:'Rajdhani',sans-serif;font-size:10px;fill:var(--blue);font-weight:600}
+.alt-box{fill:rgba(139,92,246,0.05);stroke:var(--purple);stroke-width:1;stroke-dasharray:4,3}
+
+/* Activity */
+.act-start{fill:var(--primary)}
+.act-end{fill:none;stroke:var(--primary);stroke-width:2.5}
+.act-end-inner{fill:var(--primary)}
+.act-action{fill:var(--surface2);stroke:var(--green);stroke-width:1.5;rx:20}
+.act-decision{fill:rgba(232,160,32,0.12);stroke:var(--gold);stroke-width:1.5}
+.act-text{font-family:'Noto Sans',sans-serif;font-size:11px;fill:var(--text);text-anchor:middle}
+.act-lbl{font-family:'Noto Sans',sans-serif;font-size:10px;fill:var(--gold)}
+.act-line{stroke:var(--muted);stroke-width:1.3;fill:none;marker-end:url(#arr)}
+.swim-lane{fill:rgba(59,130,246,0.04);stroke:var(--border2);stroke-width:1}
+.swim-lbl{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;fill:var(--blue);letter-spacing:1px}
+.fork-bar{fill:var(--text)}
+
+/* ER */
+.er-entity{fill:var(--surface2);stroke:var(--blue);stroke-width:1.8;rx:3}
+.er-entity-head{fill:rgba(59,130,246,0.15)}
+.er-title{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;fill:var(--blue);text-anchor:middle}
+.er-attr{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#8899cc}
+.er-pk{font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--gold);font-weight:600}
+.er-fk{font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--green)}
+.er-rel-line{stroke:var(--muted);stroke-width:1.5;fill:none}
+.er-rel-lbl{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;fill:var(--gold)}
+.er-diamond{fill:rgba(232,160,32,0.15);stroke:var(--gold);stroke-width:1.5}
+.er-diamond-lbl{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;fill:var(--gold);text-anchor:middle}
+.er-card{font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--primary-l)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="hbadge">TN-PSPAS</div>
+    <div>
+      <div class="htitle">UML Diagrams — Software Design Documentation</div>
+      <div class="hsub">Tamil Nadu Problem Statement Priority Auction System</div>
+    </div>
+  </div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">SE Subject · Day 2</div>
+</div>
+
+<!-- TABS -->
+<div class="tab-nav">
+  <div class="tab active" onclick="switchTab(0)">① Use Case Diagram</div>
+  <div class="tab" onclick="switchTab(1)">② Class Diagram</div>
+  <div class="tab" onclick="switchTab(2)">③ Sequence Diagram</div>
+  <div class="tab" onclick="switchTab(3)">④ Activity Diagram</div>
+  <div class="tab" onclick="switchTab(4)">⑤ ER Diagram</div>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════════════
+     1. USE CASE DIAGRAM
+══════════════════════════════════════ -->
+<div class="diagram-section active" id="tab0">
+  <div class="section-header">
+    <div class="section-title">① Use Case Diagram</div>
+    <div class="section-desc">Shows interactions between three actors (Government, Company, Admin) and the system's functional use cases. Includes «include» and «extend» relationships.</div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background:rgba(59,130,246,0.3);border:1px solid var(--blue)"></div>Actor</div>
+    <div class="legend-item"><div class="legend-box" style="background:rgba(59,130,246,0.1);border:1px solid var(--blue);border-radius:50%"></div>Use Case</div>
+    <div class="legend-item"><div style="width:20px;height:2px;background:var(--muted)"></div>Association</div>
+    <div class="legend-item"><div style="width:20px;height:2px;background:var(--green);border-top:1px dashed var(--green)"></div>«include»</div>
+    <div class="legend-item"><div style="width:20px;height:2px;background:var(--gold);border-top:1px dashed var(--gold)"></div>«extend»</div>
+  </div>
+
+  <div class="diagram-canvas">
+    <svg width="1020" height="720" viewBox="0 0 1020 720">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#6b7290"/>
+        </marker>
+        <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#1db87a"/>
+        </marker>
+        <marker id="arr-gold" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#e8a020"/>
+        </marker>
+        <marker id="arr-white" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#dde1ef"/>
+        </marker>
+        <marker id="tri" markerWidth="10" markerHeight="10" refX="9" refY="4" orient="auto">
+          <path d="M0,0 L0,8 L9,4 z" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+        </marker>
+        <marker id="diamond" markerWidth="10" markerHeight="10" refX="1" refY="5" orient="auto">
+          <path d="M0,5 L4,0 L8,5 L4,10 z" fill="#e8a020" stroke="none"/>
+        </marker>
+      </defs>
+
+      <!-- System Boundary -->
+      <rect x="200" y="40" width="640" height="650" class="sys-box"/>
+      <text x="510" y="30" class="sys-lbl" text-anchor="middle">TN-PSPAS SYSTEM BOUNDARY</text>
+
+      <!-- ─── ACTOR: GOVERNMENT ─── -->
+      <!-- Head -->
+      <circle cx="70" cy="195" r="18" class="actor-head"/>
+      <!-- Body -->
+      <line x1="70" y1="213" x2="70" y2="270" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <!-- Arms -->
+      <line x1="40" y1="235" x2="100" y2="235" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <!-- Legs -->
+      <line x1="70" y1="270" x2="45" y2="310" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="70" y1="270" x2="95" y2="310" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <text x="70" y="335" class="actor-lbl">Government</text>
+      <text x="70" y="350" style="font-size:10px;fill:var(--muted);text-anchor:middle">(Problem Owner)</text>
+
+      <!-- ─── ACTOR: COMPANY ─── -->
+      <circle cx="70" cy="490" r="18" class="actor-head"/>
+      <line x1="70" y1="508" x2="70" y2="565" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="40" y1="530" x2="100" y2="530" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="70" y1="565" x2="45" y2="605" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="70" y1="565" x2="95" y2="605" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <text x="70" y="628" class="actor-lbl">TN Company</text>
+      <text x="70" y="643" style="font-size:10px;fill:var(--muted);text-anchor:middle">(Bidder)</text>
+
+      <!-- ─── ACTOR: ADMIN ─── -->
+      <circle cx="960" cy="340" r="18" class="actor-head"/>
+      <line x1="960" y1="358" x2="960" y2="415" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="930" y1="380" x2="990" y2="380" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="960" y1="415" x2="935" y2="455" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="960" y1="415" x2="985" y2="455" class="actor-body" stroke="#3b82f6" stroke-width="2"/>
+      <text x="960" y="478" class="actor-lbl">Admin</text>
+
+      <!-- ─── USE CASES ─── -->
+      <!-- Government UCs -->
+      <ellipse cx="390" cy="110" rx="120" ry="28" class="uc-ellipse"/>
+      <text x="390" y="114" class="uc-text">Login / Authentication</text>
+
+      <ellipse cx="390" cy="195" rx="120" ry="28" class="uc-ellipse"/>
+      <text x="390" y="192" class="uc-text">Post Problem</text>
+      <text x="390" y="205" class="uc-text">Statement</text>
+
+      <ellipse cx="390" cy="290" rx="120" ry="28" class="uc-ellipse"/>
+      <text x="390" y="287" class="uc-text">View Active</text>
+      <text x="390" y="300" class="uc-text">Auctions</text>
+
+      <ellipse cx="390" cy="380" rx="120" ry="28" class="uc-ellipse"/>
+      <text x="390" y="377" class="uc-text">Declare Winner /</text>
+      <text x="390" y="390" class="uc-text">Close Auction</text>
+
+      <ellipse cx="390" cy="470" rx="120" ry="28" class="uc-ellipse"/>
+      <text x="390" y="467" class="uc-text">View Evaluation</text>
+      <text x="390" y="480" class="uc-text">Results</text>
+
+      <!-- Company UCs -->
+      <ellipse cx="630" cy="195" rx="120" ry="28" class="uc-ellipse" style="stroke:var(--green);fill:rgba(29,184,122,0.08)"/>
+      <text x="630" y="192" class="uc-text">View Available</text>
+      <text x="630" y="205" class="uc-text">Problems</text>
+
+      <ellipse cx="630" cy="290" rx="120" ry="28" class="uc-ellipse" style="stroke:var(--green);fill:rgba(29,184,122,0.08)"/>
+      <text x="630" y="287" class="uc-text">Submit Bid</text>
+      <text x="630" y="300" class="uc-text">(with Score Priority)</text>
+
+      <ellipse cx="630" cy="385" rx="120" ry="28" class="uc-ellipse" style="stroke:var(--green);fill:rgba(29,184,122,0.08)"/>
+      <text x="630" y="382" class="uc-text">Track Bid</text>
+      <text x="630" y="395" class="uc-text">Ranking</text>
+
+      <ellipse cx="630" cy="475" rx="120" ry="28" class="uc-ellipse" style="stroke:var(--green);fill:rgba(29,184,122,0.08)"/>
+      <text x="630" y="472" class="uc-text">View Score</text>
+      <text x="630" y="485" class="uc-text">Profile</text>
+
+      <!-- Admin UCs -->
+      <ellipse cx="820" cy="290" rx="110" ry="28" class="uc-ellipse" style="stroke:var(--gold);fill:rgba(232,160,32,0.08)"/>
+      <text x="820" y="287" class="uc-text">Manage Companies</text>
+      <text x="820" y="300" class="uc-text">& Scores</text>
+
+      <ellipse cx="820" cy="380" rx="110" ry="28" class="uc-ellipse" style="stroke:var(--gold);fill:rgba(232,160,32,0.08)"/>
+      <text x="820" y="377" class="uc-text">Monitor All</text>
+      <text x="820" y="390" class="uc-text">Auctions</text>
+
+      <ellipse cx="820" cy="470" rx="110" ry="28" class="uc-ellipse" style="stroke:var(--gold);fill:rgba(232,160,32,0.08)"/>
+      <text x="820" y="467" class="uc-text">Generate</text>
+      <text x="820" y="480" class="uc-text">Reports</text>
+
+      <!-- Shared -->
+      <ellipse cx="510" cy="600" rx="120" ry="28" class="uc-ellipse" style="stroke:var(--purple);fill:rgba(139,92,246,0.08)"/>
+      <text x="510" y="597" class="uc-text">Score Calculation</text>
+      <text x="510" y="610" class="uc-text">(Auto Engine)</text>
+
+      <!-- ─── ASSOCIATIONS ─── -->
+      <!-- Govt → UCs -->
+      <line x1="90" y1="205" x2="268" y2="165" class="assoc"/>
+      <line x1="90" y1="220" x2="268" y2="200" class="assoc"/>
+      <line x1="90" y1="230" x2="268" y2="295" class="assoc"/>
+      <line x1="90" y1="240" x2="268" y2="370" class="assoc"/>
+      <line x1="90" y1="245" x2="268" y2="460" class="assoc"/>
+
+      <!-- Company → UCs -->
+      <line x1="90" y1="500" x2="508" y2="205" class="assoc" stroke="#1db87a"/>
+      <line x1="90" y1="510" x2="508" y2="295" class="assoc" stroke="#1db87a"/>
+      <line x1="90" y1="520" x2="508" y2="385" class="assoc" stroke="#1db87a"/>
+      <line x1="90" y1="530" x2="508" y2="475" class="assoc" stroke="#1db87a"/>
+
+      <!-- Admin → UCs -->
+      <line x1="940" y1="350" x2="932" y2="308" class="assoc" stroke="#e8a020"/>
+      <line x1="940" y1="360" x2="932" y2="388" class="assoc" stroke="#e8a020"/>
+      <line x1="940" y1="370" x2="932" y2="468" class="assoc" stroke="#e8a020"/>
+
+      <!-- include: Submit Bid → Score Calc -->
+      <line x1="630" y1="318" x2="570" y2="572" class="incl" stroke-dasharray="5,3"/>
+      <text x="618" y="460" style="font-size:9px;fill:var(--green);font-family:'JetBrains Mono',monospace">«include»</text>
+
+      <!-- include: Declare Winner → Score Calc -->
+      <line x1="430" y1="400" x2="490" y2="572" class="incl" stroke-dasharray="5,3"/>
+      <text x="424" y="500" style="font-size:9px;fill:var(--green);font-family:'JetBrains Mono',monospace">«include»</text>
+
+      <!-- extend: Track Ranking → View Score -->
+      <line x1="630" y1="413" x2="630" y2="447" class="ext" stroke-dasharray="5,3"/>
+      <text x="638" y="433" style="font-size:9px;fill:var(--gold);font-family:'JetBrains Mono',monospace">«extend»</text>
+
+      <!-- Both login -->
+      <line x1="90" y1="190" x2="268" y2="115" class="assoc"/>
+      <line x1="90" y1="480" x2="268" y2="120" class="assoc" stroke="#1db87a"/>
+    </svg>
+  </div>
+
+  <div class="code-box"><span class="note">@startuml  (PlantUML Code — paste at plantuml.com)</span>
+left to right direction
+skinparam actorStyle awesome
+
+<span class="kw">actor</span> <span class="cls">"Government"</span> as GOV
+<span class="kw">actor</span> <span class="cls">"TN Company"</span> as COM
+<span class="kw">actor</span> <span class="cls">"Admin"</span> as ADM
+
+<span class="kw">rectangle</span> "TN-PSPAS System" {
+  <span class="kw">usecase</span> "Login / Authentication" as UC1
+  <span class="kw">usecase</span> "Post Problem Statement" as UC2
+  <span class="kw">usecase</span> "View Active Auctions" as UC3
+  <span class="kw">usecase</span> "Declare Winner" as UC4
+  <span class="kw">usecase</span> "View Evaluation Results" as UC5
+  <span class="kw">usecase</span> "View Available Problems" as UC6
+  <span class="kw">usecase</span> "Submit Bid (Score Priority)" as UC7
+  <span class="kw">usecase</span> "Track Bid Ranking" as UC8
+  <span class="kw">usecase</span> "View Score Profile" as UC9
+  <span class="kw">usecase</span> "Manage Companies & Scores" as UC10
+  <span class="kw">usecase</span> "Monitor All Auctions" as UC11
+  <span class="kw">usecase</span> "Score Calculation Engine" as UC12
+}
+
+GOV <span class="rel">--></span> UC1 : uses
+GOV <span class="rel">--></span> UC2 : uses
+GOV <span class="rel">--></span> UC3 : uses
+GOV <span class="rel">--></span> UC4 : uses
+GOV <span class="rel">--></span> UC5 : uses
+COM <span class="rel">--></span> UC6 : uses
+COM <span class="rel">--></span> UC7 : uses
+COM <span class="rel">--></span> UC8 : uses
+COM <span class="rel">--></span> UC9 : uses
+ADM <span class="rel">--></span> UC10 : uses
+ADM <span class="rel">--></span> UC11 : uses
+UC7 <span class="rel">..</span>> UC12 : «include»
+UC4 <span class="rel">..</span>> UC12 : «include»
+UC8 <span class="rel">..</span>> UC9  : «extend»
+<span class="note">@enduml</span></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     2. CLASS DIAGRAM
+══════════════════════════════════════ -->
+<div class="diagram-section" id="tab1">
+  <div class="section-header">
+    <div class="section-title">② Class Diagram</div>
+    <div class="section-desc">Shows the 6 main classes, their attributes, methods, and relationships. Includes inheritance, composition, and association with multiplicity.</div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div style="width:20px;height:2px;background:var(--blue)"></div>Inheritance (is-a)</div>
+    <div class="legend-item"><div style="width:20px;height:2px;background:var(--gold)"></div>Composition (has-a)</div>
+    <div class="legend-item"><div style="width:20px;height:2px;background:var(--green)"></div>Association</div>
+    <div class="legend-item"><div style="width:20px;height:2px;background:var(--muted);border-top:1px dashed var(--muted)"></div>Dependency</div>
+  </div>
+
+  <div class="diagram-canvas">
+    <svg width="1020" height="820" viewBox="0 0 1020 820">
+      <defs>
+        <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#6b7290"/>
+        </marker>
+        <marker id="arr-g2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#1db87a"/>
+        </marker>
+        <marker id="arr-gold2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#e8a020"/>
+        </marker>
+        <marker id="tri2" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto">
+          <path d="M0,0 L0,10 L10,5 z" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+        </marker>
+        <marker id="diam2" markerWidth="12" markerHeight="12" refX="1" refY="6" orient="auto">
+          <path d="M0,6 L5,1 L10,6 L5,11 z" fill="#e8a020"/>
+        </marker>
+        <marker id="diam-hollow" markerWidth="12" markerHeight="12" refX="1" refY="6" orient="auto">
+          <path d="M0,6 L5,1 L10,6 L5,11 z" fill="none" stroke="#6b7290" stroke-width="1.5"/>
+        </marker>
+      </defs>
+
+      <!-- ── USER (base class) ── -->
+      <g transform="translate(380,30)">
+        <rect width="240" height="130" class="class-box"/>
+        <rect width="240" height="36" class="class-head"/>
+        <text x="120" y="14" class="class-stereo">«abstract»</text>
+        <text x="120" y="28" class="class-title">User</text>
+        <line x1="0" y1="36" x2="240" y2="36" class="divider"/>
+        <text x="10" y="54" class="class-attr">- userId: String</text>
+        <text x="10" y="68" class="class-attr">- name: String</text>
+        <text x="10" y="82" class="class-attr">- email: String</text>
+        <text x="10" y="96" class="class-attr">- password: String</text>
+        <line x1="0" y1="104" x2="240" y2="104" class="divider"/>
+        <text x="10" y="120" class="class-method">+ login(): Boolean</text>
+      </g>
+
+      <!-- ── GOVERNMENT (child) ── -->
+      <g transform="translate(80,250)">
+        <rect width="240" height="160" class="class-box"/>
+        <rect width="240" height="36" class="class-head"/>
+        <text x="120" y="24" class="class-title">Government</text>
+        <line x1="0" y1="36" x2="240" y2="36" class="divider"/>
+        <text x="10" y="54" class="class-attr">- deptName: String</text>
+        <text x="10" y="68" class="class-attr">- deptCode: String</text>
+        <text x="10" y="82" class="class-attr">- district: String</text>
+        <line x1="0" y1="92" x2="240" y2="92" class="divider"/>
+        <text x="10" y="108" class="class-method">+ postProblem(): void</text>
+        <text x="10" y="122" class="class-method">+ viewBids(): List</text>
+        <text x="10" y="136" class="class-method">+ declareWinner(): void</text>
+        <text x="10" y="150" class="class-method">+ closeAuction(): void</text>
+      </g>
+
+      <!-- ── COMPANY (child) ── -->
+      <g transform="translate(380,250)">
+        <rect width="250" height="196" class="class-box"/>
+        <rect width="250" height="36" class="class-head"/>
+        <text x="125" y="24" class="class-title">Company</text>
+        <line x1="0" y1="36" x2="250" y2="36" class="divider"/>
+        <text x="10" y="54" class="class-attr">- companyId: String</text>
+        <text x="10" y="68" class="class-attr">- regNumber: String</text>
+        <text x="10" y="82" class="class-attr">- district: String</text>
+        <text x="10" y="96" class="class-attr">- isVerified: Boolean</text>
+        <line x1="0" y1="106" x2="250" y2="106" class="divider"/>
+        <text x="10" y="122" class="class-method">+ submitBid(): Bid</text>
+        <text x="10" y="136" class="class-method">+ viewAuctions(): List</text>
+        <text x="10" y="150" class="class-method">+ getScore(): float</text>
+        <text x="10" y="164" class="class-method">+ viewRanking(): int</text>
+        <text x="10" y="178" class="class-method">+ updateProfile(): void</text>
+      </g>
+
+      <!-- ── ADMIN (child) ── -->
+      <g transform="translate(700,250)">
+        <rect width="230" height="160" class="class-box"/>
+        <rect width="230" height="36" class="class-head"/>
+        <text x="115" y="24" class="class-title">Admin</text>
+        <line x1="0" y1="36" x2="230" y2="36" class="divider"/>
+        <text x="10" y="54" class="class-attr">- adminId: String</text>
+        <text x="10" y="68" class="class-attr">- accessLevel: int</text>
+        <line x1="0" y1="78" x2="230" y2="78" class="divider"/>
+        <text x="10" y="94" class="class-method">+ manageCompanies()</text>
+        <text x="10" y="108" class="class-method">+ updateScore()</text>
+        <text x="10" y="122" class="class-method">+ monitorAuctions()</text>
+        <text x="10" y="136" class="class-method">+ generateReport()</text>
+        <text x="10" y="150" class="class-method">+ verifyCompany()</text>
+      </g>
+
+      <!-- Inheritance arrows: User → 3 children -->
+      <line x1="500" y1="160" x2="500" y2="230" stroke="#3b82f6" stroke-width="1.5" fill="none" marker-end="url(#tri2)"/>
+      <line x1="500" y1="210" x2="200" y2="250" stroke="#3b82f6" stroke-width="1.5" fill="none" marker-end="url(#tri2)"/>
+      <line x1="500" y1="210" x2="815" y2="250" stroke="#3b82f6" stroke-width="1.5" fill="none" marker-end="url(#tri2)"/>
+      <line x1="200" y1="210" x2="200" y2="250" stroke="#3b82f6" stroke-width="1" stroke-dasharray="2"/>
+      <line x1="815" y1="210" x2="815" y2="250" stroke="#3b82f6" stroke-width="1" stroke-dasharray="2"/>
+
+      <!-- ── PROBLEM STATEMENT ── -->
+      <g transform="translate(30,520)">
+        <rect width="260" height="196" class="class-box" style="stroke:var(--primary)"/>
+        <rect width="260" height="36" class="class-head" style="fill:rgba(200,51,10,0.2)"/>
+        <text x="130" y="24" class="class-title" style="fill:var(--primary-l)">ProblemStatement</text>
+        <line x1="0" y1="36" x2="260" y2="36" class="divider"/>
+        <text x="10" y="54" class="class-attr">- psId: String {PK}</text>
+        <text x="10" y="68" class="class-attr">- title: String</text>
+        <text x="10" y="82" class="class-attr">- category: String</text>
+        <text x="10" y="96" class="class-attr">- budget: float</text>
+        <text x="10" y="110" class="class-attr">- deadline: Date</text>
+        <text x="10" y="124" class="class-attr">- priority: Enum</text>
+        <text x="10" y="138" class="class-attr">- status: Enum</text>
+        <line x1="0" y1="148" x2="260" y2="148" class="divider"/>
+        <text x="10" y="164" class="class-method">+ openAuction(): void</text>
+        <text x="10" y="178" class="class-method">+ closeAuction(): void</text>
+      </g>
+
+      <!-- ── BID ── -->
+      <g transform="translate(360,530)">
+        <rect width="250" height="182" class="class-box" style="stroke:var(--green)"/>
+        <rect width="250" height="36" class="class-head" style="fill:rgba(29,184,122,0.1)"/>
+        <text x="125" y="24" class="class-title" style="fill:var(--green)">Bid</text>
+        <line x1="0" y1="36" x2="250" y2="36" class="divider"/>
+        <text x="10" y="54" class="class-attr">- bidId: String {PK}</text>
+        <text x="10" y="68" class="class-attr">- companyId: String {FK}</text>
+        <text x="10" y="82" class="class-attr">- psId: String {FK}</text>
+        <text x="10" y="96" class="class-attr">- bidAmount: float</text>
+        <text x="10" y="110" class="class-attr">- submittedDate: Date</text>
+        <text x="10" y="124" class="class-attr">- finalScore: float</text>
+        <line x1="0" y1="134" x2="250" y2="134" class="divider"/>
+        <text x="10" y="150" class="class-method">+ calcFinalScore(): float</text>
+        <text x="10" y="164" class="class-method">+ getRankPosition(): int</text>
+      </g>
+
+      <!-- ── SCORE ENGINE ── -->
+      <g transform="translate(690,530)">
+        <rect width="280" height="196" class="class-box" style="stroke:var(--gold)"/>
+        <rect width="280" height="36" class="class-head" style="fill:rgba(232,160,32,0.12)"/>
+        <text x="140" y="14" class="class-stereo">«service»</text>
+        <text x="140" y="28" class="class-title" style="fill:var(--gold)">ScoreEngine</text>
+        <line x1="0" y1="36" x2="280" y2="36" class="divider"/>
+        <text x="10" y="54" class="class-attr">- onTimeWeight: 0.40</text>
+        <text x="10" y="68" class="class-attr">- qualityWeight: 0.30</text>
+        <text x="10" y="82" class="class-attr">- feedbackWeight: 0.20</text>
+        <text x="10" y="96" class="class-attr">- historyWeight: 0.10</text>
+        <line x1="0" y1="106" x2="280" y2="106" class="divider"/>
+        <text x="10" y="122" class="class-method">+ calcCompanyScore(): float</text>
+        <text x="10" y="136" class="class-method">+ calcBidScore(): float</text>
+        <text x="10" y="150" class="class-method">+ rankBidders(): List</text>
+        <text x="10" y="164" class="class-method">+ evalWinner(): Company</text>
+        <text x="10" y="178" class="class-method">+ updateAfterProject(): void</text>
+      </g>
+
+      <!-- ── COMPANY SCORE (sub-entity) ── -->
+      <g transform="translate(380,760)">
+        <rect width="250" height="50" class="class-box" style="stroke:var(--purple)"/>
+        <rect width="250" height="24" class="class-head" style="fill:rgba(139,92,246,0.12)"/>
+        <text x="125" y="17" class="class-title" style="fill:#a78bfa;font-size:11px">CompanyScore</text>
+        <text x="10" y="40" class="class-attr">- onTime: float  - quality: float  - feedback: float  - projects: int</text>
+      </g>
+
+      <!-- Relations -->
+      <!-- Govt posts ProblemStatement (1 to many) -->
+      <line x1="200" y1="410" x2="160" y2="520" stroke="#e8a020" stroke-width="1.5" fill="none" marker-end="url(#arr-gold2)" marker-start="url(#diam2)"/>
+      <text x="140" y="470" class="multi-lbl">1</text>
+      <text x="152" y="516" class="multi-lbl">0..*</text>
+      <text x="168" y="490" class="rel-lbl" style="fill:var(--gold)">posts</text>
+
+      <!-- Company submits Bid (1 to many) -->
+      <line x1="505" y1="446" x2="480" y2="530" stroke="#1db87a" stroke-width="1.5" fill="none" marker-end="url(#arr-g2)"/>
+      <text x="460" y="490" class="multi-lbl">1</text>
+      <text x="474" y="528" class="multi-lbl">0..*</text>
+      <text x="490" y="495" class="rel-lbl" style="fill:var(--green)">submits</text>
+
+      <!-- ProblemStatement receives Bid -->
+      <line x1="290" y1="618" x2="360" y2="618" stroke="#6b7290" stroke-width="1.5" fill="none" marker-end="url(#arr2)"/>
+      <text x="300" y="612" class="multi-lbl">1</text>
+      <text x="340" y="612" class="multi-lbl">0..*</text>
+      <text x="302" y="630" class="rel-lbl">receives</text>
+
+      <!-- Bid uses ScoreEngine -->
+      <line x1="610" y1="620" x2="690" y2="628" stroke="#6b7290" stroke-width="1" stroke-dasharray="5,3" fill="none" marker-end="url(#arr2)"/>
+      <text x="628" y="616" class="rel-lbl">«uses»</text>
+
+      <!-- Company has CompanyScore -->
+      <line x1="505" y1="446" x2="505" y2="760" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4,3" fill="none" marker-end="url(#arr2)"/>
+      <text x="512" y="620" class="rel-lbl" style="fill:#a78bfa">has</text>
+    </svg>
+  </div>
+
+  <div class="code-box"><span class="note">@startuml  (PlantUML Class Diagram)</span>
+<span class="kw">abstract class</span> <span class="cls">User</span> {
+  - userId: String
+  - name: String
+  - email: String
+  - password: String
+  + login(): Boolean
+}
+
+<span class="kw">class</span> <span class="cls">Government</span> <span class="kw">extends</span> User {
+  - deptName: String
+  + postProblem(): void
+  + declareWinner(): void
+}
+
+<span class="kw">class</span> <span class="cls">Company</span> <span class="kw">extends</span> User {
+  - companyId: String
+  - district: String
+  + submitBid(): Bid
+  + getScore(): float
+}
+
+<span class="kw">class</span> <span class="cls">Admin</span> <span class="kw">extends</span> User {
+  + manageCompanies(): void
+  + updateScore(): void
+}
+
+<span class="kw">class</span> <span class="cls">ProblemStatement</span> {
+  - psId: String
+  - budget: float
+  - status: Enum
+  + openAuction(): void
+}
+
+<span class="kw">class</span> <span class="cls">Bid</span> {
+  - bidId: String
+  - bidAmount: float
+  - finalScore: float
+  + calcFinalScore(): float
+}
+
+<span class="kw">class</span> <span class="cls">ScoreEngine</span> &lt;&lt;service&gt;&gt; {
+  + calcCompanyScore(): float
+  + rankBidders(): List
+  + evalWinner(): Company
+}
+
+Government "1" <span class="rel">--o</span> "0..*" ProblemStatement : posts
+Company "1" <span class="rel">--></span> "0..*" Bid : submits
+ProblemStatement "1" <span class="rel">--></span> "0..*" Bid : receives
+Bid <span class="rel">..</span>> ScoreEngine : «uses»
+<span class="note">@enduml</span></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     3. SEQUENCE DIAGRAM
+══════════════════════════════════════ -->
+<div class="diagram-section" id="tab2">
+  <div class="section-header">
+    <div class="section-title">③ Sequence Diagram</div>
+    <div class="section-desc">Shows the complete auction flow — from problem posting by Government to winner declaration. Includes Score Engine interaction and bid ranking process.</div>
+  </div>
+
+  <div class="diagram-canvas">
+    <svg width="980" height="780" viewBox="0 0 980 780">
+      <defs>
+        <marker id="sq-arr" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L8,3.5 z" fill="#dde1ef"/>
+        </marker>
+        <marker id="sq-ret" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L8,3.5 z" fill="#6b7290"/>
+        </marker>
+        <marker id="sq-green" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L8,3.5 z" fill="#1db87a"/>
+        </marker>
+        <marker id="sq-gold" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L8,3.5 z" fill="#e8a020"/>
+        </marker>
+      </defs>
+
+      <!-- Lifeline headers -->
+      <!-- Govt -->
+      <rect x="30" y="10" width="120" height="44" class="seq-box"/>
+      <text x="90" y="37" class="seq-lbl">Government</text>
+      <!-- System/UI -->
+      <rect x="220" y="10" width="120" height="44" class="seq-box" style="stroke:var(--primary)"/>
+      <text x="280" y="37" class="seq-lbl">System UI</text>
+      <!-- Auction Controller -->
+      <rect x="400" y="10" width="140" height="44" class="seq-box" style="stroke:var(--blue)"/>
+      <text x="470" y="30" class="seq-lbl">Auction</text>
+      <text x="470" y="46" class="seq-lbl">Controller</text>
+      <!-- Score Engine -->
+      <rect x="610" y="10" width="130" height="44" class="seq-box" style="stroke:var(--gold)"/>
+      <text x="675" y="30" class="seq-lbl">Score</text>
+      <text x="675" y="46" class="seq-lbl">Engine</text>
+      <!-- Company -->
+      <rect x="820" y="10" width="120" height="44" class="seq-box" style="stroke:var(--green)"/>
+      <text x="880" y="37" class="seq-lbl">Company</text>
+
+      <!-- Lifelines -->
+      <line x1="90"  y1="54" x2="90"  y2="770" class="lifeline"/>
+      <line x1="280" y1="54" x2="280" y2="770" class="lifeline"/>
+      <line x1="470" y1="54" x2="470" y2="770" class="lifeline"/>
+      <line x1="675" y1="54" x2="675" y2="770" class="lifeline"/>
+      <line x1="880" y1="54" x2="880" y2="770" class="lifeline"/>
+
+      <!-- Activation boxes -->
+      <rect x="84"  y="80"  width="12" height="600" class="activation"/>
+      <rect x="274" y="90"  width="12" height="590" class="activation"/>
+      <rect x="464" y="100" width="12" height="580" class="activation"/>
+      <rect x="669" y="200" width="12" height="200" class="activation" style="fill:rgba(232,160,32,0.2);stroke:var(--gold)"/>
+      <rect x="874" y="360" width="12" height="200" class="activation" style="fill:rgba(29,184,122,0.15);stroke:var(--green)"/>
+
+      <!-- ── MESSAGES ── -->
+      <!-- 1. Govt logs in -->
+      <line x1="96" y1="90" x2="274" y2="90" stroke="#dde1ef" stroke-width="1.3" marker-end="url(#sq-arr)"/>
+      <text x="140" y="85" class="msg-lbl">1: login(govtId, password)</text>
+      <line x1="274" y1="110" x2="96" y2="110" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="120" y="108" class="msg-lbl" style="fill:var(--muted)">auth: token</text>
+
+      <!-- 2. Post problem -->
+      <line x1="96" y1="145" x2="274" y2="145" stroke="#dde1ef" stroke-width="1.3" marker-end="url(#sq-arr)"/>
+      <text x="100" y="140" class="msg-lbl">2: postProblem(title, budget, deadline, priority)</text>
+
+      <line x1="280" y1="165" x2="464" y2="165" stroke="#e8451a" stroke-width="1.3" marker-end="url(#sq-arr)" style="stroke:var(--primary-l)"/>
+      <text x="310" y="160" class="msg-lbl">3: createProblemStatement(data)</text>
+
+      <line x1="464" y1="190" x2="280" y2="190" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="300" y="186" class="msg-lbl" style="fill:var(--muted)">psId: PS001</text>
+
+      <line x1="280" y1="210" x2="96"  y2="210" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="100" y="207" class="msg-lbl" style="fill:var(--muted)">confirmation: "Problem posted, auction open"</text>
+
+      <!-- Notify companies -->
+      <line x1="470" y1="235" x2="874" y2="235" stroke="#1db87a" stroke-width="1.3" marker-end="url(#sq-green)"/>
+      <text x="540" y="230" class="msg-lbl" style="fill:var(--green)">4: notifyCompanies(PS001)</text>
+
+      <!-- Company views problem -->
+      <line x1="880" y1="270" x2="280" y2="270" stroke="#1db87a" stroke-width="1.3" marker-end="url(#sq-green)"/>
+      <text x="400" y="265" class="msg-lbl" style="fill:var(--green)">5: viewProblemDetails(PS001)</text>
+
+      <line x1="280" y1="290" x2="874" y2="290" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="450" y="286" class="msg-lbl" style="fill:var(--muted)">problemDetails, budget, deadline</text>
+
+      <!-- Company submits bid -->
+      <text x="800" y="328" style="font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;fill:var(--purple)">[ Company decides to bid ]</text>
+      <line x1="880" y1="340" x2="280" y2="340" stroke="#1db87a" stroke-width="1.5" marker-end="url(#sq-arr)"/>
+      <text x="390" y="335" class="msg-lbl" style="fill:var(--green)">6: submitBid(companyId, PS001, amount)</text>
+
+      <line x1="280" y1="360" x2="464" y2="360" stroke="#dde1ef" stroke-width="1.3" marker-end="url(#sq-arr)"/>
+      <text x="295" y="356" class="msg-lbl">7: processBid(bidData)</text>
+
+      <!-- Score engine called -->
+      <line x1="470" y1="390" x2="669" y2="390" stroke="#e8a020" stroke-width="1.5" marker-end="url(#sq-gold)"/>
+      <text x="490" y="385" class="msg-lbl" style="fill:var(--gold)">8: calcCompanyScore(companyId)</text>
+
+      <line x1="669" y1="420" x2="470" y2="420" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="490" y="416" class="msg-lbl" style="fill:var(--muted)">companyScore: 91</text>
+
+      <line x1="470" y1="450" x2="669" y2="450" stroke="#e8a020" stroke-width="1.5" marker-end="url(#sq-gold)"/>
+      <text x="490" y="445" class="msg-lbl" style="fill:var(--gold)">9: assignBidPriority(bidId, score)</text>
+
+      <line x1="669" y1="470" x2="470" y2="470" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="490" y="466" class="msg-lbl" style="fill:var(--muted)">priorityRank: 1</text>
+
+      <!-- Return to company -->
+      <line x1="464" y1="500" x2="280" y2="500" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="295" y="496" class="msg-lbl" style="fill:var(--muted)">bidId: B005, rank: 1</text>
+
+      <line x1="280" y1="520" x2="874" y2="520" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="400" y="516" class="msg-lbl" style="fill:var(--muted)">10: bidConfirmation + ranking position</text>
+
+      <!-- Govt declares winner -->
+      <text x="15" y="565" style="font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;fill:var(--purple)">[ Auction deadline reached ]</text>
+      <line x1="96" y1="577" x2="274" y2="577" stroke="#dde1ef" stroke-width="1.5" marker-end="url(#sq-arr)"/>
+      <text x="100" y="572" class="msg-lbl">11: declareWinner(PS001)</text>
+
+      <line x1="280" y1="597" x2="464" y2="597" stroke="#dde1ef" stroke-width="1.3" marker-end="url(#sq-arr)"/>
+      <text x="290" y="592" class="msg-lbl">12: evaluateAllBids(PS001)</text>
+
+      <line x1="470" y1="617" x2="669" y2="617" stroke="#e8a020" stroke-width="1.5" marker-end="url(#sq-gold)"/>
+      <text x="480" y="612" class="msg-lbl" style="fill:var(--gold)">13: calcFinalScore(60%bid + 40%perf)</text>
+
+      <line x1="669" y1="637" x2="470" y2="637" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="490" y="633" class="msg-lbl" style="fill:var(--muted)">rankedList[winner: C003]</text>
+
+      <line x1="464" y1="660" x2="280" y2="660" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="282" y="656" class="msg-lbl" style="fill:var(--muted)">14: winner details</text>
+
+      <line x1="280" y1="680" x2="96" y2="680" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-ret)"/>
+      <text x="98" y="676" class="msg-lbl" style="fill:var(--gold)">15: 🏆 Winner: GreenPath Agritech</text>
+
+      <!-- Notify winner -->
+      <line x1="470" y1="710" x2="874" y2="710" stroke="#1db87a" stroke-width="1.5" marker-end="url(#sq-green)"/>
+      <text x="560" y="706" class="msg-lbl" style="fill:var(--green)">16: notifyWinner(companyId)</text>
+
+      <!-- Score update -->
+      <line x1="470" y1="740" x2="669" y2="740" stroke="#e8a020" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#sq-gold)"/>
+      <text x="480" y="736" class="msg-lbl" style="fill:var(--gold)">17: updateScoreAfterProject()</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     4. ACTIVITY DIAGRAM
+══════════════════════════════════════ -->
+<div class="diagram-section" id="tab3">
+  <div class="section-header">
+    <div class="section-title">④ Activity Diagram</div>
+    <div class="section-desc">Shows the complete workflow of the Score-Based Priority Auction process with swim lanes for Government, System, and Company actors.</div>
+  </div>
+
+  <div class="diagram-canvas">
+    <svg width="980" height="860" viewBox="0 0 980 860">
+      <defs>
+        <marker id="act-arr" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L8,3.5 z" fill="#6b7290"/>
+        </marker>
+        <marker id="act-grn" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L8,3.5 z" fill="#1db87a"/>
+        </marker>
+      </defs>
+
+      <!-- Swim lanes -->
+      <rect x="10"  y="50" width="290" height="790" class="swim-lane"/>
+      <rect x="300" y="50" width="370" height="790" class="swim-lane" style="fill:rgba(232,160,32,0.03)"/>
+      <rect x="670" y="50" width="300" height="790" class="swim-lane" style="fill:rgba(29,184,122,0.03)"/>
+
+      <!-- Lane headers -->
+      <rect x="10"  y="50" width="290" height="34" style="fill:rgba(200,51,10,0.15);stroke:var(--border2);stroke-width:1"/>
+      <rect x="300" y="50" width="370" height="34" style="fill:rgba(232,160,32,0.1);stroke:var(--border2);stroke-width:1"/>
+      <rect x="670" y="50" width="300" height="34" style="fill:rgba(29,184,122,0.08);stroke:var(--border2);stroke-width:1"/>
+
+      <text x="155" y="73" class="swim-lbl" text-anchor="middle" style="fill:var(--primary-l)">GOVERNMENT</text>
+      <text x="485" y="73" class="swim-lbl" text-anchor="middle" style="fill:var(--gold)">SYSTEM / SCORE ENGINE</text>
+      <text x="820" y="73" class="swim-lbl" text-anchor="middle" style="fill:var(--green)">COMPANY</text>
+
+      <!-- ── START ── -->
+      <circle cx="155" cy="118" r="12" class="act-start"/>
+      <line x1="155" y1="130" x2="155" y2="150" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+
+      <!-- Login -->
+      <rect x="65" y="150" width="180" height="40" class="act-action"/>
+      <text x="155" y="175" class="act-text">Login (Govt)</text>
+      <line x1="155" y1="190" x2="155" y2="215" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+
+      <!-- Post Problem -->
+      <rect x="50" y="215" width="210" height="40" class="act-action"/>
+      <text x="155" y="240" class="act-text">Post Problem Statement</text>
+      <line x1="260" y1="235" x2="300" y2="235" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+
+      <!-- Validate -->
+      <rect x="315" y="215" width="160" height="40" class="act-action" style="stroke:var(--gold)"/>
+      <text x="395" y="240" class="act-text" style="fill:var(--gold)">Validate & Store PS</text>
+
+      <!-- Open Auction -->
+      <rect x="315" y="285" width="160" height="40" class="act-action" style="stroke:var(--gold)"/>
+      <text x="395" y="310" class="act-text" style="fill:var(--gold)">Open Auction</text>
+      <line x1="395" y1="255" x2="395" y2="285" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+
+      <!-- Notify -->
+      <rect x="315" y="355" width="160" height="40" class="act-action" style="stroke:var(--gold)"/>
+      <text x="395" y="380" class="act-text" style="fill:var(--gold)">Notify All Companies</text>
+      <line x1="395" y1="325" x2="395" y2="355" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+      <line x1="475" y1="375" x2="670" y2="375" stroke="#1db87a" stroke-width="1.3" marker-end="url(#act-grn)"/>
+
+      <!-- Company: view problem -->
+      <rect x="690" y="355" width="190" height="40" class="act-action" style="stroke:var(--green)"/>
+      <text x="785" y="380" class="act-text" style="fill:var(--green)">View Problem Details</text>
+      <line x1="785" y1="395" x2="785" y2="430" stroke="#1db87a" stroke-width="1.3" marker-end="url(#act-grn)"/>
+
+      <!-- Decision: Apply? -->
+      <polygon points="785,430 850,465 785,500 720,465" class="act-decision"/>
+      <text x="785" y="468" class="act-text" style="fill:var(--gold)">Apply?</text>
+      <text x="855" y="462" class="act-lbl">Yes</text>
+      <text x="740" y="510" class="act-lbl">No</text>
+
+      <!-- Submit bid -->
+      <rect x="700" y="505" width="170" height="40" class="act-action" style="stroke:var(--green)"/>
+      <text x="785" y="530" class="act-text" style="fill:var(--green)">Submit Bid + Proposal</text>
+      <line x1="785" y1="500" x2="785" y2="505" stroke="#1db87a" stroke-width="1.3" marker-end="url(#act-grn)"/>
+
+      <!-- Line from No back up -->
+      <line x1="720" y1="465" x2="670" y2="465" stroke="#6b7290" stroke-width="1" stroke-dasharray="4,3"/>
+
+      <!-- System receives bid -->
+      <line x1="700" y1="525" x2="475" y2="525" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+      <rect x="315" y="505" width="160" height="40" class="act-action" style="stroke:var(--gold)"/>
+      <text x="395" y="530" class="act-text" style="fill:var(--gold)">Receive Bid</text>
+
+      <!-- Score calc -->
+      <rect x="315" y="575" width="160" height="40" class="act-action" style="stroke:var(--gold)"/>
+      <text x="395" y="597" class="act-text" style="fill:var(--gold)">Calculate Company</text>
+      <text x="395" y="610" class="act-text" style="fill:var(--gold)">Score</text>
+      <line x1="395" y1="545" x2="395" y2="575" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+
+      <!-- Rank bidders -->
+      <rect x="315" y="645" width="160" height="40" class="act-action" style="stroke:var(--gold)"/>
+      <text x="395" y="670" class="act-text" style="fill:var(--gold)">Rank All Bidders</text>
+      <line x1="395" y1="615" x2="395" y2="645" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+
+      <!-- Deadline decision -->
+      <polygon points="395,710 465,745 395,780 325,745" class="act-decision"/>
+      <text x="395" y="748" class="act-text" style="fill:var(--gold)">Deadline?</text>
+      <line x1="395" y1="685" x2="395" y2="710" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+      <text x="468" y="742" class="act-lbl">Yes</text>
+      <text x="297" y="748" class="act-lbl">No → wait</text>
+
+      <!-- Govt: Declare winner -->
+      <line x1="465" y1="745" x2="510" y2="745" stroke="#6b7290" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="510" y1="745" x2="510" y2="760" stroke="#6b7290" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="155" y1="760" x2="510" y2="760" stroke="#6b7290" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="155" y1="710" x2="155" y2="760" stroke="#6b7290" stroke-width="1.3"/>
+      <rect x="65" y="670" width="180" height="40" class="act-action"/>
+      <text x="155" y="695" class="act-text">Declare Winner</text>
+      <line x1="155" y1="710" x2="155" y2="670" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+
+      <!-- Evaluate -->
+      <rect x="65" y="600" width="180" height="40" class="act-action"/>
+      <text x="155" y="623" class="act-text">Evaluate: 60% Bid +</text>
+      <text x="155" y="637" class="act-text">40% Perf Score</text>
+      <line x1="155" y1="670" x2="155" y2="640" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+
+      <!-- Fork: parallel notify + score update -->
+      <rect x="100" y="565" width="110" height="8" class="fork-bar" style="fill:var(--muted)"/>
+      <line x1="155" y1="565" x2="155" y2="600" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+      <line x1="155" y1="565" x2="785" y2="565" stroke="#1db87a" stroke-width="1.3" marker-end="url(#act-grn)"/>
+
+      <!-- Company notified -->
+      <rect x="700" y="565" width="170" height="40" class="act-action" style="stroke:var(--green)"/>
+      <text x="785" y="590" class="act-text" style="fill:var(--green)">Receive Winner Notification</text>
+
+      <!-- END -->
+      <circle cx="155" cy="830" r="12" class="act-end"/>
+      <circle cx="155" cy="830" r="8" class="act-end-inner"/>
+      <line x1="155" y1="530" x2="155" y2="540" stroke="#6b7290" stroke-width="1"/>
+      <rect x="65" y="540" width="180" height="25" class="act-action" style="rx:4"/>
+      <text x="155" y="557" class="act-text">Update Score History</text>
+      <line x1="155" y1="500" x2="155" y2="540" stroke="#6b7290" stroke-width="1.3"/>
+      <line x1="155" y1="810" x2="155" y2="818" stroke="#6b7290" stroke-width="1.3" marker-end="url(#act-arr)"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     5. ER DIAGRAM
+══════════════════════════════════════ -->
+<div class="diagram-section" id="tab4">
+  <div class="section-header">
+    <div class="section-title">⑤ Entity-Relationship (ER) Diagram</div>
+    <div class="section-desc">Shows 6 database tables, their attributes (PK/FK highlighted), and relationships with cardinality. This maps directly to your database design.</div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold)">🔑 PK</span> Primary Key</div>
+    <div class="legend-item"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">FK</span> Foreign Key</div>
+    <div class="legend-item"><div style="width:20px;height:2px;background:var(--muted)"></div> Relationship</div>
+    <div class="legend-item"><span style="font-size:12px;color:var(--gold)">1  *</span> Cardinality</div>
+  </div>
+
+  <div class="diagram-canvas">
+    <svg width="980" height="780" viewBox="0 0 980 780">
+
+      <!-- ── COMPANIES ── -->
+      <g transform="translate(30,50)">
+        <rect width="220" height="230" class="er-entity"/>
+        <rect width="220" height="34" class="er-entity-head"/>
+        <text x="110" y="22" class="er-title">COMPANIES</text>
+        <line x1="0" y1="34" x2="220" y2="34" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+        <text x="10" y="55" class="er-pk">🔑 company_id (PK)</text>
+        <text x="10" y="74" class="er-attr">  company_name</text>
+        <text x="10" y="93" class="er-attr">  reg_number</text>
+        <text x="10" y="112" class="er-attr">  district</text>
+        <text x="10" y="131" class="er-attr">  email</text>
+        <text x="10" y="150" class="er-attr">  phone</text>
+        <text x="10" y="169" class="er-attr">  is_verified</text>
+        <text x="10" y="188" class="er-attr">  status</text>
+        <text x="10" y="207" class="er-attr">  created_date</text>
+      </g>
+
+      <!-- ── COMPANY_SCORE ── -->
+      <g transform="translate(30,320)">
+        <rect width="220" height="210" class="er-entity" style="stroke:var(--gold)"/>
+        <rect width="220" height="34" class="er-entity-head" style="fill:rgba(232,160,32,0.12)"/>
+        <text x="110" y="22" class="er-title" style="fill:var(--gold)">COMPANY_SCORE</text>
+        <line x1="0" y1="34" x2="220" y2="34" stroke="rgba(232,160,32,0.3)" stroke-width="1"/>
+        <text x="10" y="55" class="er-pk">🔑 score_id (PK)</text>
+        <text x="10" y="74" class="er-fk">FK  company_id</text>
+        <text x="10" y="93" class="er-attr">  ontime_rate</text>
+        <text x="10" y="112" class="er-attr">  quality_rating</text>
+        <text x="10" y="131" class="er-attr">  feedback_score</text>
+        <text x="10" y="150" class="er-attr">  project_count</text>
+        <text x="10" y="169" class="er-attr">  total_score</text>
+        <text x="10" y="188" class="er-attr">  last_updated</text>
+      </g>
+
+      <!-- ── PROBLEM_STATEMENTS ── -->
+      <g transform="translate(380,50)">
+        <rect width="230" height="248" class="er-entity" style="stroke:var(--primary)"/>
+        <rect width="230" height="34" class="er-entity-head" style="fill:rgba(200,51,10,0.18)"/>
+        <text x="115" y="22" class="er-title" style="fill:var(--primary-l)">PROBLEM_STATEMENTS</text>
+        <line x1="0" y1="34" x2="230" y2="34" stroke="rgba(200,51,10,0.4)" stroke-width="1"/>
+        <text x="10" y="55" class="er-pk">🔑 ps_id (PK)</text>
+        <text x="10" y="74" class="er-fk">FK  govt_id</text>
+        <text x="10" y="93" class="er-attr">  title</text>
+        <text x="10" y="112" class="er-attr">  description</text>
+        <text x="10" y="131" class="er-attr">  category</text>
+        <text x="10" y="150" class="er-attr">  district</text>
+        <text x="10" y="169" class="er-attr">  budget</text>
+        <text x="10" y="188" class="er-attr">  deadline</text>
+        <text x="10" y="207" class="er-attr">  priority [HIGH/MED/LOW]</text>
+        <text x="10" y="226" class="er-attr">  status [OPEN/CLOSED]</text>
+        <text x="10" y="245" class="er-attr">  posted_date</text>
+      </g>
+
+      <!-- ── BIDS ── -->
+      <g transform="translate(380,370)">
+        <rect width="230" height="210" class="er-entity" style="stroke:var(--green)"/>
+        <rect width="230" height="34" class="er-entity-head" style="fill:rgba(29,184,122,0.1)"/>
+        <text x="115" y="22" class="er-title" style="fill:var(--green)">BIDS</text>
+        <line x1="0" y1="34" x2="230" y2="34" stroke="rgba(29,184,122,0.3)" stroke-width="1"/>
+        <text x="10" y="55" class="er-pk">🔑 bid_id (PK)</text>
+        <text x="10" y="74" class="er-fk">FK  company_id</text>
+        <text x="10" y="93" class="er-fk">FK  ps_id</text>
+        <text x="10" y="112" class="er-attr">  bid_amount</text>
+        <text x="10" y="131" class="er-attr">  submitted_date</text>
+        <text x="10" y="150" class="er-attr">  bid_score</text>
+        <text x="10" y="169" class="er-attr">  final_score</text>
+        <text x="10" y="188" class="er-attr">  rank_position</text>
+        <text x="10" y="207" class="er-attr">  status</text>
+      </g>
+
+      <!-- ── EVALUATION_RESULTS ── -->
+      <g transform="translate(730,50)">
+        <rect width="220" height="210" class="er-entity" style="stroke:var(--purple)"/>
+        <rect width="220" height="34" class="er-entity-head" style="fill:rgba(139,92,246,0.12)"/>
+        <text x="110" y="22" class="er-title" style="fill:#a78bfa">EVALUATION_RESULTS</text>
+        <line x1="0" y1="34" x2="220" y2="34" stroke="rgba(139,92,246,0.3)" stroke-width="1"/>
+        <text x="10" y="55" class="er-pk">🔑 result_id (PK)</text>
+        <text x="10" y="74" class="er-fk">FK  ps_id</text>
+        <text x="10" y="93" class="er-fk">FK  winner_company_id</text>
+        <text x="10" y="112" class="er-fk">FK  winning_bid_id</text>
+        <text x="10" y="131" class="er-attr">  final_score</text>
+        <text x="10" y="150" class="er-attr">  evaluation_date</text>
+        <text x="10" y="169" class="er-attr">  total_bidders</text>
+        <text x="10" y="188" class="er-attr">  remarks</text>
+      </g>
+
+      <!-- ── PAST_PROJECTS ── -->
+      <g transform="translate(730,320)">
+        <rect width="220" height="210" class="er-entity"/>
+        <rect width="220" height="34" class="er-entity-head"/>
+        <text x="110" y="22" class="er-title">PAST_PROJECTS</text>
+        <line x1="0" y1="34" x2="220" y2="34" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+        <text x="10" y="55" class="er-pk">🔑 project_id (PK)</text>
+        <text x="10" y="74" class="er-fk">FK  company_id</text>
+        <text x="10" y="93" class="er-fk">FK  ps_id</text>
+        <text x="10" y="112" class="er-attr">  project_title</text>
+        <text x="10" y="131" class="er-attr">  completion_date</text>
+        <text x="10" y="150" class="er-attr">  ontime_flag</text>
+        <text x="10" y="169" class="er-attr">  quality_score</text>
+        <text x="10" y="188" class="er-attr">  client_feedback</text>
+        <text x="10" y="207" class="er-attr">  outcome</text>
+      </g>
+
+      <!-- ── RELATIONSHIP LINES ── -->
+
+      <!-- Companies — CompanyScore (1:1) -->
+      <line x1="140" y1="280" x2="140" y2="320" stroke="#e8a020" stroke-width="1.8"/>
+      <text x="148" y="300" class="er-card">1</text>
+      <text x="148" y="318" class="er-card">1</text>
+      <text x="155" y="307" class="er-rel-lbl">has score</text>
+
+      <!-- Companies — Bids (1:many) -->
+      <line x1="250" y1="165" x2="380" y2="475" stroke="#6b7290" stroke-width="1.5"/>
+      <text x="262" y="175" class="er-card">1</text>
+      <text x="368" y="470" class="er-card">*</text>
+      <text x="290" y="330" class="er-rel-lbl">submits</text>
+
+      <!-- ProblemStatements — Bids (1:many) -->
+      <line x1="495" y1="298" x2="495" y2="370" stroke="#6b7290" stroke-width="1.8"/>
+      <text x="503" y="316" class="er-card">1</text>
+      <text x="503" y="368" class="er-card">*</text>
+      <text x="510" y="340" class="er-rel-lbl">receives</text>
+
+      <!-- ProblemStatements — EvalResults (1:1) -->
+      <line x1="610" y1="115" x2="730" y2="115" stroke="#8b5cf6" stroke-width="1.5"/>
+      <text x="618" y="110" class="er-card">1</text>
+      <text x="718" y="110" class="er-card">1</text>
+      <text x="650" y="108" class="er-rel-lbl">produces</text>
+
+      <!-- Companies — PastProjects (1:many) -->
+      <line x1="250" y1="230" x2="730" y2="415" stroke="#6b7290" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="440" y="310" class="er-rel-lbl">has history</text>
+
+      <!-- EvalResults — PastProjects -->
+      <line x1="840" y1="260" x2="840" y2="320" stroke="#6b7290" stroke-width="1.5"/>
+      <text x="848" y="288" class="er-card">1</text>
+      <text x="848" y="318" class="er-card">1</text>
+
+      <!-- Government entity (simple box) -->
+      <g transform="translate(380,630)">
+        <rect width="230" height="100" class="er-entity" style="stroke:var(--blue)"/>
+        <rect width="230" height="34" class="er-entity-head" style="fill:rgba(59,130,246,0.1)"/>
+        <text x="115" y="22" class="er-title">GOVERNMENT_USERS</text>
+        <line x1="0" y1="34" x2="230" y2="34" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+        <text x="10" y="55" class="er-pk">🔑 govt_id (PK)</text>
+        <text x="10" y="74" class="er-attr">  dept_name, district</text>
+        <text x="10" y="93" class="er-attr">  email, password</text>
+      </g>
+
+      <!-- Govt posts problems -->
+      <line x1="495" y1="630" x2="495" y2="298" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="503" y="440" class="er-card" style="fill:var(--blue)">1</text>
+      <text x="503" y="302" class="er-card" style="fill:var(--blue)">*</text>
+      <text x="512" y="420" class="er-rel-lbl" style="fill:var(--blue)">posts</text>
+    </svg>
+  </div>
+
+  <div class="code-box"><span class="note">-- MySQL DDL (copy to create your database)</span>
+
+<span class="kw">CREATE TABLE</span> <span class="cls">Companies</span> (
+  company_id   VARCHAR(10)  <span class="rel">PRIMARY KEY</span>,
+  company_name VARCHAR(100) NOT NULL,
+  district     VARCHAR(50),
+  is_verified  BOOLEAN      DEFAULT FALSE,
+  status       ENUM('active','suspended') DEFAULT 'active'
+);
+
+<span class="kw">CREATE TABLE</span> <span class="cls">Company_Score</span> (
+  score_id      INT          <span class="rel">PRIMARY KEY AUTO_INCREMENT</span>,
+  company_id    VARCHAR(10)  <span class="rel">REFERENCES</span> Companies(company_id),
+  ontime_rate   FLOAT,
+  quality_rating FLOAT,
+  feedback_score FLOAT,
+  project_count  INT,
+  total_score    FLOAT GENERATED ALWAYS AS
+    (0.40*ontime_rate + 0.30*quality_rating + 0.20*feedback_score + 0.10*(project_count*2))
+);
+
+<span class="kw">CREATE TABLE</span> <span class="cls">Problem_Statements</span> (
+  ps_id    VARCHAR(10)  <span class="rel">PRIMARY KEY</span>,
+  govt_id  VARCHAR(10)  <span class="rel">REFERENCES</span> Government_Users(govt_id),
+  title    VARCHAR(200) NOT NULL,
+  budget   DECIMAL(12,2),
+  deadline DATE,
+  priority ENUM('high','medium','low'),
+  status   ENUM('pending','auction_open','auction_closed')
+);
+
+<span class="kw">CREATE TABLE</span> <span class="cls">Bids</span> (
+  bid_id       VARCHAR(10) <span class="rel">PRIMARY KEY</span>,
+  company_id   VARCHAR(10) <span class="rel">REFERENCES</span> Companies(company_id),
+  ps_id        VARCHAR(10) <span class="rel">REFERENCES</span> Problem_Statements(ps_id),
+  bid_amount   DECIMAL(12,2),
+  final_score  FLOAT,
+  rank_position INT
+);</div>
+</div>
+
+</div><!-- end content -->
+
+<script>
+function switchTab(i) {
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.diagram-section').forEach((s,j)=>s.classList.toggle('active',j===i));
+  // animate score bars on switch
+  setTimeout(()=>{
+    document.querySelectorAll('.score-fill').forEach(b=>{
+      const w = b.style.width; b.style.width='0'; setTimeout(()=>b.style.width=w,50);
+    });
+  },100);
+}
+</script>
+</body>
+</html>
